@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, debug: { roleId: roleId || "NOT SET", messagePreview: message.substring(0, 50) } });
   } catch (err) {
     console.error("Discord送信エラー:", err);
     return NextResponse.json(
