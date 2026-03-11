@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       "payload_json",
       JSON.stringify({
         content: message,
-        allowed_mentions: { parse: ["roles"] },
+        allowed_mentions: { roles: roleId ? [roleId] : [] },
       })
     );
     discordForm.append(
