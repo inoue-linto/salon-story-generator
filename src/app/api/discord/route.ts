@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
-  const roleId = process.env.DISCORD_ROLE_ID;
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL?.trim();
+  const roleId = process.env.DISCORD_ROLE_ID?.trim();
 
   if (!webhookUrl) {
     return NextResponse.json(
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ ok: true, debug: { roleId: roleId || "NOT SET", messagePreview: message.substring(0, 50) } });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Discord送信エラー:", err);
     return NextResponse.json(
