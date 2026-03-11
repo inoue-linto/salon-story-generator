@@ -28,7 +28,13 @@ export async function POST(req: NextRequest) {
     const message = `${mention}${storeName} ${date}のストーリー画像です！投稿お願いします🙏`;
 
     const discordForm = new FormData();
-    discordForm.append("content", message);
+    discordForm.append(
+      "payload_json",
+      JSON.stringify({
+        content: message,
+        allowed_mentions: { parse: ["roles"] },
+      })
+    );
     discordForm.append(
       "files[0]",
       new Blob([await image.arrayBuffer()], { type: "image/png" }),
