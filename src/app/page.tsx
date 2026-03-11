@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { toPng } from "html-to-image";
 import StoryForm from "@/components/StoryForm";
 import StoryPreview, { type StoryData } from "@/components/StoryPreview";
+
 
 const defaultData: StoryData = {
   storeName: "",
@@ -16,28 +17,63 @@ const defaultData: StoryData = {
 
 export default function Home() {
   const [data, setData] = useState<StoryData>(defaultData);
-  const [downloading, setDownloading] = useState(false);
+  const [sendingDiscord, setSendingDiscord] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const handleDownload = useCallback(async () => {
-    if (!previewRef.current) return;
-    setDownloading(true);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const generateImage = useCallback(async () => {
+    if (!previewRef.current) return null;
+    return await toPng(previewRef.current, {
+      width: 1080,
+      height: 1920,
+      pixelRatio: 1,
+    });
+  }, []);
+
+  const handleSendDiscord = useCallback(async () => {
+    setSendingDiscord(true);
     try {
-      const dataUrl = await toPng(previewRef.current, {
-        width: 1080,
-        height: 1920,
-        pixelRatio: 1,
+      const dataUrl = await generateImage();
+      if (!dataUrl) return;
+
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+
+      const formData = new FormData();
+      formData.append("image", blob, "story.png");
+      formData.append("storeName", data.storeName);
+      formData.append("date", data.date);
+
+      const result = await fetch("/api/discord", {
+        method: "POST",
+        body: formData,
       });
-      const link = document.createElement("a");
-      link.download = `salon-story-${data.date.replace(/\//g, "-") || "image"}.png`;
-      link.href = dataUrl;
-      link.click();
+
+      if (result.ok) {
+        setToast({ message: "Discordに送信しました", type: "success" });
+      } else {
+        const json = await result.json();
+        setToast({
+          message: json.error || "送信に失敗しました",
+          type: "error",
+        });
+      }
     } catch (err) {
-      console.error("画像の生成に失敗しました", err);
+      console.error("Discord送信エラー:", err);
+      setToast({ message: "送信に失敗しました", type: "error" });
     } finally {
-      setDownloading(false);
+      setSendingDiscord(false);
     }
-  }, [data.date]);
+  }, [data.storeName, data.date, generateImage]);
 
   return (
     <main className="min-h-screen py-8 px-4">
@@ -59,11 +95,19 @@ export default function Home() {
               <StoryForm data={data} onChange={setData} />
 
               <button
-                onClick={handleDownload}
-                disabled={downloading}
-                className="w-full mt-8 bg-sage hover:bg-sage-dark disabled:opacity-50 text-white font-medium py-3.5 px-6 rounded-xl transition-colors cursor-pointer"
+                onClick={handleSendDiscord}
+                disabled={sendingDiscord}
+                className="w-full mt-8 bg-[#5865F2] hover:bg-[#4752C4] disabled:opacity-50 text-white font-medium py-3.5 px-6 rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
-                {downloading ? "生成中..." : "PNGをダウンロード"}
+                <svg
+                  width="20"
+                  height="15"
+                  viewBox="0 0 71 55"
+                  fill="currentColor"
+                >
+                  <path d="M60.1 4.9A58.5 58.5 0 0 0 45.4.2a.2.2 0 0 0-.2.1 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0A37.4 37.4 0 0 0 25.4.3a.2.2 0 0 0-.2-.1A58.4 58.4 0 0 0 10.5 4.9a.2.2 0 0 0-.1.1C1.5 18.7-.9 32.2.3 45.5v.2a58.9 58.9 0 0 0 17.7 9a.2.2 0 0 0 .3-.1 42.1 42.1 0 0 0 3.6-5.9.2.2 0 0 0-.1-.3 38.8 38.8 0 0 1-5.5-2.7.2.2 0 0 1 0-.4l1.1-.9a.2.2 0 0 1 .2 0 42 42 0 0 0 35.6 0 .2.2 0 0 1 .2 0l1.1.9a.2.2 0 0 1 0 .4 36.4 36.4 0 0 1-5.5 2.7.2.2 0 0 0-.1.3 47.3 47.3 0 0 0 3.6 5.9.2.2 0 0 0 .3.1A58.7 58.7 0 0 0 70.4 45.7v-.2c1.4-15-2.3-28-9.8-39.6a.2.2 0 0 0-.1-.1ZM23.7 37.3c-3.4 0-6.3-3.1-6.3-7s2.8-7 6.3-7 6.3 3.2 6.3 7-2.8 7-6.3 7Zm23.2 0c-3.4 0-6.3-3.1-6.3-7s2.8-7 6.3-7 6.3 3.2 6.3 7-2.8 7-6.3 7Z" />
+                </svg>
+                {sendingDiscord ? "送信中..." : "Discordに送信"}
               </button>
             </div>
           </div>
@@ -92,6 +136,17 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg text-white font-medium transition-all z-50 ${
+            toast.type === "success" ? "bg-[#5865F2]" : "bg-red-500"
+          }`}
+        >
+          {toast.type === "success" ? "✅" : "❌"} {toast.message}
+        </div>
+      )}
     </main>
   );
 }
