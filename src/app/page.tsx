@@ -6,6 +6,8 @@ import StoryForm from "@/components/StoryForm";
 import StoryPreview, { type StoryData } from "@/components/StoryPreview";
 
 
+import { themes } from "@/themes";
+
 const defaultData: StoryData = {
   storeName: "",
   date: "",
@@ -23,6 +25,34 @@ export default function Home() {
     type: "success" | "error";
   } | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const [bgBlobUrls, setBgBlobUrls] = useState<Record<string, string>>({});
+
+  // Preload all background images as Blob Object URLs on mount
+  // Blob URLs are same-origin, so html-to-image can fetch & inline them (avoids Vercel CDN CORS issues)
+  useEffect(() => {
+    let urls: string[] = [];
+    const load = async () => {
+      const entries: Record<string, string> = {};
+      await Promise.all(
+        themes.map(async (t) => {
+          try {
+            const res = await fetch(t.backgroundImage);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            entries[t.id] = url;
+            urls.push(url);
+          } catch {
+            // fallback to original URL
+          }
+        })
+      );
+      setBgBlobUrls(entries);
+    };
+    load();
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -32,39 +62,17 @@ export default function Home() {
 
   const generateImage = useCallback(async () => {
     if (!previewRef.current) return null;
-    const images = previewRef.current.querySelectorAll("img");
-    // Fetch images and convert to data URLs to avoid canvas tainting issues
-    const originals: { img: HTMLImageElement; src: string }[] = [];
-    await Promise.all(
-      Array.from(images).map(async (img) => {
-        try {
-          const src = img.currentSrc || img.src;
-          if (!src || src.startsWith("data:")) return;
-          const res = await fetch(src);
-          const blob = await res.blob();
-          const dataUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(blob);
-          });
-          originals.push({ img, src: img.src });
-          img.src = dataUrl;
-        } catch {
-          // skip on error
-        }
-      })
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("画像生成タイムアウト")), 15000)
     );
-    try {
-      return await toJpeg(previewRef.current, {
-        width: 1080,
-        height: 1920,
-        pixelRatio: 1,
-        quality: 0.85,
-        backgroundColor: "#ffffff",
-      });
-    } finally {
-      originals.forEach(({ img, src }) => (img.src = src));
-    }
+    const generate = toJpeg(previewRef.current, {
+      width: 1080,
+      height: 1920,
+      pixelRatio: 1,
+      quality: 0.85,
+      backgroundColor: "#ffffff",
+    });
+    return await Promise.race([generate, timeout]);
   }, []);
 
   const handleSendDiscord = useCallback(async () => {
@@ -161,7 +169,7 @@ export default function Home() {
                   height: 1920,
                 }}
               >
-                <StoryPreview data={data} previewRef={previewRef} />
+                <StoryPreview data={data} previewRef={previewRef} bgDataUrl={bgBlobUrls[data.themeId]} />
               </div>
             </div>
           </div>

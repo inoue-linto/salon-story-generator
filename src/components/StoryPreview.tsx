@@ -17,9 +17,10 @@ export type StoryData = {
 type Props = {
   data: StoryData;
   previewRef: React.RefObject<HTMLDivElement | null>;
+  bgDataUrl?: string;
 };
 
-export default function StoryPreview({ data, previewRef }: Props) {
+export default function StoryPreview({ data, previewRef, bgDataUrl }: Props) {
   const { storeName, date, timeSlots, menuItems = [], comment = "", themeId } = data;
   const theme = getThemeById(themeId);
 
@@ -41,9 +42,9 @@ export default function StoryPreview({ data, previewRef }: Props) {
         overflow: "hidden",
       }}
     >
-      {/* Background image */}
+      {/* Background image - use inline data URL for reliable capture */}
       <img
-        src={theme.backgroundImage}
+        src={bgDataUrl || theme.backgroundImage}
         alt=""
         style={{
           position: "absolute",
