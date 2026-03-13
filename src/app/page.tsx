@@ -32,6 +32,27 @@ export default function Home() {
 
   const generateImage = useCallback(async () => {
     if (!previewRef.current) return null;
+    // Wait for all images inside the preview to be fully loaded
+    const images = previewRef.current.querySelectorAll("img");
+    await Promise.all(
+      Array.from(images).map(
+        (img) =>
+          img.complete
+            ? Promise.resolve()
+            : new Promise<void>((resolve) => {
+                img.onload = () => resolve();
+                img.onerror = () => resolve();
+              })
+      )
+    );
+    // Run toJpeg twice - first call warms up fonts/images, second produces clean output
+    await toJpeg(previewRef.current, {
+      width: 1080,
+      height: 1920,
+      pixelRatio: 1,
+      quality: 0.1,
+      backgroundColor: "#ffffff",
+    });
     return await toJpeg(previewRef.current, {
       width: 1080,
       height: 1920,
