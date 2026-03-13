@@ -33,29 +33,24 @@ export default function Home() {
   const generateImage = useCallback(async () => {
     if (!previewRef.current) return null;
     const images = previewRef.current.querySelectorAll("img");
-    // Convert all images to inline data URLs so html-to-image can capture them
+    // Fetch images and convert to data URLs to avoid canvas tainting issues
     const originals: { img: HTMLImageElement; src: string }[] = [];
     await Promise.all(
       Array.from(images).map(async (img) => {
         try {
-          if (!img.complete) {
-            await new Promise<void>((resolve) => {
-              img.onload = () => resolve();
-              img.onerror = () => resolve();
-            });
-          }
-          if (img.naturalWidth === 0) return;
-          const canvas = document.createElement("canvas");
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return;
-          ctx.drawImage(img, 0, 0);
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          const src = img.currentSrc || img.src;
+          if (!src || src.startsWith("data:")) return;
+          const res = await fetch(src);
+          const blob = await res.blob();
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
           originals.push({ img, src: img.src });
           img.src = dataUrl;
         } catch {
-          // skip if canvas tainted
+          // skip on error
         }
       })
     );
@@ -68,7 +63,6 @@ export default function Home() {
         backgroundColor: "#ffffff",
       });
     } finally {
-      // Restore original src
       originals.forEach(({ img, src }) => (img.src = src));
     }
   }, []);
