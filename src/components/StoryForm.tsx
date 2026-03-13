@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { type StoryData, MENU_OPTIONS } from "./StoryPreview";
 import { themes } from "@/themes";
 
@@ -64,10 +65,13 @@ export default function StoryForm({ data, onChange }: Props) {
                   : "border-beige/50 hover:border-sage/40"
               }`}
             >
-              <img
+              <Image
                 src={t.backgroundImage}
                 alt={t.name}
-                className="w-full h-full object-cover"
+                fill
+                sizes="120px"
+                className="object-cover"
+                priority
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black/40 px-1 py-1">
                 <span className="text-white text-xs font-medium">{t.name}</span>
