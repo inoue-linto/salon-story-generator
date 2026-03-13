@@ -17,7 +17,7 @@ export const themes: Theme[] = [
   {
     id: "fabric-flower",
     name: "ファブリック",
-    backgroundImage: "/backgrounds/fabric-flower.png",
+    backgroundImage: "/backgrounds/fabric-flower.jpg",
     cardBg: "rgba(255, 255, 255, 0.88)",
     cardBorder: "rgba(200, 180, 160, 0.25)",
     textColor: "#9a8070",
@@ -31,7 +31,7 @@ export const themes: Theme[] = [
   {
     id: "gold-petals",
     name: "ゴールドペタル",
-    backgroundImage: "/backgrounds/gold-petals.png",
+    backgroundImage: "/backgrounds/gold-petals.jpg",
     cardBg: "rgba(255, 255, 255, 0.85)",
     cardBorder: "rgba(200, 170, 100, 0.2)",
     textColor: "#8a7a65",
@@ -45,7 +45,7 @@ export const themes: Theme[] = [
   {
     id: "silk-glow",
     name: "シルクグロウ",
-    backgroundImage: "/backgrounds/silk-glow.png",
+    backgroundImage: "/backgrounds/silk-glow.jpg",
     cardBg: "rgba(255, 255, 255, 0.82)",
     cardBorder: "rgba(210, 195, 175, 0.2)",
     textColor: "#8a7e70",
@@ -59,7 +59,7 @@ export const themes: Theme[] = [
   {
     id: "warm-frame",
     name: "ウォームフレーム",
-    backgroundImage: "/backgrounds/warm-frame.png",
+    backgroundImage: "/backgrounds/warm-frame.jpg",
     cardBg: "rgba(255, 255, 255, 0.9)",
     cardBorder: "rgba(190, 175, 150, 0.2)",
     textColor: "#8a7e68",
@@ -73,7 +73,7 @@ export const themes: Theme[] = [
   {
     id: "rainbow-sparkle",
     name: "レインボー",
-    backgroundImage: "/backgrounds/rainbow-sparkle.png",
+    backgroundImage: "/backgrounds/rainbow-sparkle.jpg",
     cardBg: "rgba(255, 255, 255, 0.88)",
     cardBorder: "rgba(180, 160, 200, 0.2)",
     textColor: "#7a7580",
@@ -87,7 +87,7 @@ export const themes: Theme[] = [
   {
     id: "monstera",
     name: "モンステラ",
-    backgroundImage: "/backgrounds/monstera.png",
+    backgroundImage: "/backgrounds/monstera.jpg",
     cardBg: "rgba(255, 255, 255, 0.9)",
     cardBorder: "rgba(100, 140, 100, 0.15)",
     textColor: "#5a6b55",
@@ -101,7 +101,7 @@ export const themes: Theme[] = [
   {
     id: "flower-info",
     name: "フラワーINFO",
-    backgroundImage: "/backgrounds/flower-info.png",
+    backgroundImage: "/backgrounds/flower-info.jpg",
     cardBg: "rgba(255, 255, 255, 0.82)",
     cardBorder: "rgba(160, 175, 160, 0.2)",
     textColor: "#7a8a75",
@@ -115,7 +115,7 @@ export const themes: Theme[] = [
   {
     id: "bokeh-leaf",
     name: "ボケリーフ",
-    backgroundImage: "/backgrounds/bokeh-leaf.png",
+    backgroundImage: "/backgrounds/bokeh-leaf.jpg",
     cardBg: "rgba(255, 255, 255, 0.88)",
     cardBorder: "rgba(180, 180, 175, 0.2)",
     textColor: "#808078",
@@ -129,7 +129,7 @@ export const themes: Theme[] = [
   {
     id: "flower-bouquet",
     name: "フラワーブーケ",
-    backgroundImage: "/backgrounds/flower-bouquet.png",
+    backgroundImage: "/backgrounds/flower-bouquet.jpg",
     cardBg: "rgba(255, 255, 255, 0.9)",
     cardBorder: "rgba(180, 170, 140, 0.2)",
     textColor: "#8a8068",
@@ -143,7 +143,7 @@ export const themes: Theme[] = [
   {
     id: "blue-frame",
     name: "ブルーフレーム",
-    backgroundImage: "/backgrounds/blue-frame.png",
+    backgroundImage: "/backgrounds/blue-frame.jpg",
     cardBg: "rgba(255, 255, 255, 0.88)",
     cardBorder: "rgba(170, 185, 180, 0.2)",
     textColor: "#7a8580",
