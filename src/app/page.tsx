@@ -37,6 +37,7 @@ export default function Home() {
       height: 1920,
       pixelRatio: 1,
       quality: 0.85,
+      backgroundColor: "#ffffff",
     });
   }, []);
 
