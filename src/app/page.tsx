@@ -12,7 +12,7 @@ const defaultData: StoryData = {
   timeSlots: [""],
   menuItems: [],
   comment: "",
-  themeId: "sage",
+  themeId: "sample",
 };
 
 export default function Home() {

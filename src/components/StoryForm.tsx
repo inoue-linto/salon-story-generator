@@ -52,17 +52,29 @@ export default function StoryForm({ data, onChange }: Props) {
         <label className="block text-sm font-medium text-foreground/70 mb-2">
           背景デザイン
         </label>
-        <select
-          value={data.themeId}
-          onChange={(e) => update({ themeId: e.target.value })}
-          className="w-full rounded-xl border border-beige bg-white px-4 py-3 text-foreground outline-none focus:border-sage focus:ring-2 focus:ring-sage/20 transition-all appearance-none cursor-pointer"
-        >
+        <div className="grid grid-cols-3 gap-2">
           {themes.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.emoji} {t.name}
-            </option>
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => update({ themeId: t.id })}
+              className={`relative rounded-xl overflow-hidden border-2 transition-all cursor-pointer aspect-[9/16] ${
+                data.themeId === t.id
+                  ? "border-sage ring-2 ring-sage/30"
+                  : "border-beige/50 hover:border-sage/40"
+              }`}
+            >
+              <img
+                src={t.backgroundImage}
+                alt={t.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/40 px-1 py-1">
+                <span className="text-white text-xs font-medium">{t.name}</span>
+              </div>
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       {/* Store name */}
