@@ -32,34 +32,45 @@ export default function Home() {
 
   const generateImage = useCallback(async () => {
     if (!previewRef.current) return null;
-    // Wait for all images inside the preview to be fully loaded
     const images = previewRef.current.querySelectorAll("img");
+    // Convert all images to inline data URLs so html-to-image can capture them
+    const originals: { img: HTMLImageElement; src: string }[] = [];
     await Promise.all(
-      Array.from(images).map(
-        (img) =>
-          img.complete
-            ? Promise.resolve()
-            : new Promise<void>((resolve) => {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              })
-      )
+      Array.from(images).map(async (img) => {
+        try {
+          if (!img.complete) {
+            await new Promise<void>((resolve) => {
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+            });
+          }
+          if (img.naturalWidth === 0) return;
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+          originals.push({ img, src: img.src });
+          img.src = dataUrl;
+        } catch {
+          // skip if canvas tainted
+        }
+      })
     );
-    // Run toJpeg twice - first call warms up fonts/images, second produces clean output
-    await toJpeg(previewRef.current, {
-      width: 1080,
-      height: 1920,
-      pixelRatio: 1,
-      quality: 0.1,
-      backgroundColor: "#ffffff",
-    });
-    return await toJpeg(previewRef.current, {
-      width: 1080,
-      height: 1920,
-      pixelRatio: 1,
-      quality: 0.85,
-      backgroundColor: "#ffffff",
-    });
+    try {
+      return await toJpeg(previewRef.current, {
+        width: 1080,
+        height: 1920,
+        pixelRatio: 1,
+        quality: 0.85,
+        backgroundColor: "#ffffff",
+      });
+    } finally {
+      // Restore original src
+      originals.forEach(({ img, src }) => (img.src = src));
+    }
   }, []);
 
   const handleSendDiscord = useCallback(async () => {
