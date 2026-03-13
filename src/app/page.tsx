@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { toJpeg } from "html-to-image";
+import { toPng } from "html-to-image";
 import StoryForm from "@/components/StoryForm";
 import StoryPreview, { type StoryData } from "@/components/StoryPreview";
 
 
-import { themes } from "@/themes";
+import { themes, getThemeById } from "@/themes";
 
 const defaultData: StoryData = {
   storeName: "",
@@ -62,18 +62,64 @@ export default function Home() {
 
   const generateImage = useCallback(async () => {
     if (!previewRef.current) return null;
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("画像生成タイムアウト")), 15000)
-    );
-    const generate = toJpeg(previewRef.current, {
+
+    const theme = getThemeById(data.themeId);
+    const bgUrl = bgBlobUrls[data.themeId] || theme.backgroundImage;
+
+    // 1. Load background image into an Image element
+    const bgImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("背景画像の読み込み失敗"));
+      img.src = bgUrl;
+    });
+
+    // 2. Capture text/card overlay as transparent PNG (skip the background <img>)
+    const overlayDataUrl = await toPng(previewRef.current, {
       width: 1080,
       height: 1920,
       pixelRatio: 1,
-      quality: 0.85,
-      backgroundColor: "#ffffff",
+      filter: (node: Node) => {
+        if (node instanceof HTMLElement && node.dataset.bg === "true") return false;
+        return true;
+      },
     });
-    return await Promise.race([generate, timeout]);
-  }, []);
+
+    // 3. Canvas composite: background + overlay → JPEG
+    const canvas = document.createElement("canvas");
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext("2d")!;
+
+    // Draw white base (JPEG has no transparency)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Draw background image (object-fit: cover logic)
+    const imgR = bgImg.naturalWidth / bgImg.naturalHeight;
+    const canvasR = 1080 / 1920;
+    let sx = 0, sy = 0, sw = bgImg.naturalWidth, sh = bgImg.naturalHeight;
+    if (imgR > canvasR) {
+      sw = bgImg.naturalHeight * canvasR;
+      sx = (bgImg.naturalWidth - sw) / 2;
+    } else {
+      sh = bgImg.naturalWidth / canvasR;
+      sy = (bgImg.naturalHeight - sh) / 2;
+    }
+    ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, 1080, 1920);
+
+    // Draw text/card overlay on top
+    const overlayImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("オーバーレイ画像の読み込み失敗"));
+      img.src = overlayDataUrl;
+    });
+    ctx.drawImage(overlayImg, 0, 0, 1080, 1920);
+
+    return canvas.toDataURL("image/jpeg", 0.85);
+  }, [data.themeId, bgBlobUrls]);
 
   const handleSendDiscord = useCallback(async () => {
     setSendingDiscord(true);

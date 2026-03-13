@@ -42,8 +42,9 @@ export default function StoryPreview({ data, previewRef, bgDataUrl }: Props) {
         overflow: "hidden",
       }}
     >
-      {/* Background image - use inline data URL for reliable capture */}
+      {/* Background image - data-bg used by generateImage to skip during capture */}
       <img
+        data-bg="true"
         src={bgDataUrl || theme.backgroundImage}
         alt=""
         style={{
