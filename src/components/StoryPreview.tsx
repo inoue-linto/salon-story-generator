@@ -3,7 +3,7 @@
 import React from "react";
 import { getThemeById, type Theme } from "@/themes";
 
-export const MENU_OPTIONS = ["毛穴洗浄", "肌質改善", "フェイシャルワックス"] as const;
+export const MENU_OPTIONS = ["毛穴洗浄", "肌質改善", "フェイシャルワックス", "水光注入", "ピーリング"] as const;
 
 export type StoryData = {
   storeName: string;
