@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { toPng } from "html-to-image";
+import { toJpeg } from "html-to-image";
 import StoryForm from "@/components/StoryForm";
 import StoryPreview, { type StoryData } from "@/components/StoryPreview";
 
@@ -32,10 +32,11 @@ export default function Home() {
 
   const generateImage = useCallback(async () => {
     if (!previewRef.current) return null;
-    return await toPng(previewRef.current, {
+    return await toJpeg(previewRef.current, {
       width: 1080,
       height: 1920,
       pixelRatio: 1,
+      quality: 0.85,
     });
   }, []);
 
@@ -45,11 +46,14 @@ export default function Home() {
       const dataUrl = await generateImage();
       if (!dataUrl) return;
 
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
+      const byteString = atob(dataUrl.split(",")[1]);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      const blob = new Blob([ab], { type: "image/jpeg" });
 
       const formData = new FormData();
-      formData.append("image", blob, "story.png");
+      formData.append("image", blob, "story.jpg");
       formData.append("storeName", data.storeName);
       formData.append("date", data.date);
 

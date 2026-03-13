@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     );
     discordForm.append(
       "files[0]",
-      new Blob([await image.arrayBuffer()], { type: "image/png" }),
-      `salon-story-${date.replace(/\//g, "-") || "image"}.png`
+      new Blob([await image.arrayBuffer()], { type: "image/jpeg" }),
+      `salon-story-${date.replace(/\//g, "-") || "image"}.jpg`
     );
 
     const res = await fetch(webhookUrl, {
