@@ -12,7 +12,7 @@ const defaultData: StoryData = {
   timeSlots: [""],
   menuItems: [],
   comment: "",
-  themeId: "sample",
+  themeId: "fabric-flower",
 };
 
 export default function Home() {
